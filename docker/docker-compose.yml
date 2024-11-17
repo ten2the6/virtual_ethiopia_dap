@@ -1,0 +1,68 @@
+# docker/docker-compose.yml
+version: '3.8'
+
+services:
+  node1:
+    build:
+      context: ..
+      dockerfile: docker/node/Dockerfile
+    environment:
+      - NODE_ID=node1
+      - API_PORT=3001
+      - P2P_PORT=30301
+      - INITIAL_PEERS=node2:30302,node3:30303
+    ports:
+      - "3001:3001"
+      - "30301:30301"
+    networks:
+      - blockchain-net
+
+  node2:
+    build:
+      context: ..
+      dockerfile: docker/node/Dockerfile
+    environment:
+      - NODE_ID=node2
+      - API_PORT=3002
+      - P2P_PORT=30302
+      - INITIAL_PEERS=node1:30301,node3:30303
+    ports:
+      - "3002:3002"
+      - "30302:30302"
+    networks:
+      - blockchain-net
+
+  node3:
+    build:
+      context: ..
+      dockerfile: docker/node/Dockerfile
+    environment:
+      - NODE_ID=node3
+      - API_PORT=3003
+      - P2P_PORT=30303
+      - INITIAL_PEERS=node1:30301,node2:30302
+    ports:
+      - "3003:3003"
+      - "30303:30303"
+    networks:
+      - blockchain-net
+
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - blockchain-net
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - blockchain-net
+
+networks:
+  blockchain-net:
+    driver: bridge
